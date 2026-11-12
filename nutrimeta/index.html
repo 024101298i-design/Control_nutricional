@@ -288,6 +288,38 @@
     </form>
   </dialog>
 
+  <!-- Diálogo: editar comida registrada -->
+  <dialog id="edit-dialog" class="sheet" aria-labelledby="edit-title">
+    <form id="edit-form" class="sheet-body">
+      <h3 id="edit-title" class="card-title">Editar comida</h3>
+      <label class="field"><span>Nombre</span>
+        <input id="ed-name" type="text" maxlength="80" required></label>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <label class="field"><span>Cantidad</span>
+          <input id="ed-qty" type="number" inputmode="decimal" min="0.1" max="10000" step="any" required></label>
+        <label class="field"><span>Unidad</span>
+          <select id="ed-unit" class="select"></select></label>
+      </div>
+      <label class="block mt-4"><span class="label">Toma</span>
+        <select id="ed-meal" class="select"></select></label>
+      <p class="hint mt-4">Los valores se recalculan al cambiar la cantidad. Puedes corregirlos a mano si hace falta.</p>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <label class="field"><span>Calorías (kcal)</span>
+          <input id="ed-kcal" type="number" inputmode="decimal" min="0" step="any" required></label>
+        <label class="field"><span>Proteínas (g)</span>
+          <input id="ed-protein" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label class="field"><span>Carbohidratos (g)</span>
+          <input id="ed-carbs" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label class="field"><span>Grasas (g)</span>
+          <input id="ed-fat" type="number" inputmode="decimal" min="0" step="any"></label>
+      </div>
+      <div class="sheet-actions">
+        <button type="button" id="ed-cancel" class="btn-secondary">Cancelar</button>
+        <button type="submit" class="btn">Guardar cambios</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="core.js"></script>
   <script src="app.js"></script>
   <script src="foods.js"></script>
