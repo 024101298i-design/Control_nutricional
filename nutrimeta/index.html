@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0E3B34">
+  <meta name="description" content="Calcula tus calorías, registra tus comidas y cumple tu meta de proteínas.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>NutriMeta · Calculadora de metas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen">
+
+  <header class="app-header">
+    <h1 class="font-display text-2xl">NutriMeta</h1>
+    <p class="text-sm opacity-80">Calcula tus calorías y tu meta de proteínas</p>
+  </header>
+
+  <main id="app" class="mx-auto w-full max-w-md px-4 pb-28 pt-4">
+
+    <!-- Vista 1: Metas (Módulo 1) -->
+    <section id="view-metas" aria-labelledby="titulo-metas">
+      <h2 id="titulo-metas" class="sr-only">Tu perfil y tus metas</h2>
+
+      <form id="profile-form" novalidate class="space-y-4">
+
+        <div class="card">
+          <h3 class="card-title">Tus datos</h3>
+          <div class="grid grid-cols-3 gap-3">
+            <label class="field">
+              <span>Edad</span>
+              <input id="age" name="age" type="number" inputmode="numeric" min="15" max="100" placeholder="25" required>
+              <small>años</small>
+            </label>
+            <label class="field">
+              <span>Peso</span>
+              <input id="weight" name="weight" type="number" inputmode="decimal" min="30" max="300" step="0.1" placeholder="70" required>
+              <small>kg</small>
+            </label>
+            <label class="field">
+              <span>Estatura</span>
+              <input id="height" name="height" type="number" inputmode="numeric" min="120" max="230" placeholder="170" required>
+              <small>cm</small>
+            </label>
+          </div>
+
+          <fieldset class="mt-4">
+            <legend class="label">Sexo biológico</legend>
+            <div class="seg seg-2">
+              <label><input type="radio" name="sex" value="male" checked><span>Hombre</span></label>
+              <label><input type="radio" name="sex" value="female"><span>Mujer</span></label>
+            </div>
+          </fieldset>
+
+          <label class="mt-4 block">
+            <span class="label">Nivel de actividad</span>
+            <select id="activity" name="activity" class="select">
+              <option value="sedentary">Sedentario (poco o nada de ejercicio)</option>
+              <option value="light">Ligero (1–3 días por semana)</option>
+              <option value="moderate" selected>Moderado (3–5 días por semana)</option>
+              <option value="high">Alto (6–7 días por semana)</option>
+              <option value="athlete">Muy alto (entreno doble o trabajo físico)</option>
+            </select>
+          </label>
+
+          <fieldset class="mt-4">
+            <legend class="label">Objetivo</legend>
+            <div class="seg seg-3">
+              <label><input type="radio" name="goal" value="lose"><span>Perder peso</span></label>
+              <label><input type="radio" name="goal" value="maintain" checked><span>Mantener</span></label>
+              <label><input type="radio" name="goal" value="gain"><span>Ganar músculo</span></label>
+            </div>
+          </fieldset>
+
+          <p id="form-error" class="error" role="alert" hidden></p>
+        </div>
+
+        <!-- Resultados -->
+        <div id="results" hidden>
+          <div class="card card-hero">
+            <p class="text-sm opacity-80">Gasto energético total (TDEE)</p>
+            <p class="hero-number"><span id="out-tdee">0</span> <small>kcal/día</small></p>
+            <p class="text-sm opacity-80">Metabolismo basal (BMR): <strong id="out-bmr">0</strong> kcal</p>
+          </div>
+
+          <div class="card mt-4">
+            <h3 class="card-title">Tus metas diarias</h3>
+
+            <div class="goal-row">
+              <label for="goal-kcal" class="label">Calorías</label>
+              <div class="goal-input">
+                <input id="goal-kcal" type="number" inputmode="numeric" min="800" max="6000" step="10">
+                <span>kcal</span>
+              </div>
+              <p id="hint-kcal" class="hint"></p>
+              <button type="button" id="reset-kcal" class="link-btn" hidden>Volver al valor sugerido</button>
+            </div>
+
+            <div class="goal-row goal-protein">
+              <label for="goal-protein" class="label">Proteínas</label>
+              <div class="goal-input">
+                <input id="goal-protein" type="number" inputmode="numeric" min="20" max="500" step="1">
+                <span>g</span>
+              </div>
+              <p id="hint-protein" class="hint"></p>
+              <button type="button" id="reset-protein" class="link-btn" hidden>Volver al valor sugerido</button>
+            </div>
+
+            <p class="hint">Tus datos y metas se guardan solos en este dispositivo.</p>
+            <button type="submit" class="btn mt-5">Guardar mis metas</button>
+            <p id="save-status" class="status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </form>
+
+      <div class="card mt-4">
+        <h3 class="card-title">Respaldo de tus datos</h3>
+        <p class="hint">Tus datos viven solo en este navegador. Descarga un respaldo para guardarlos o pasarlos a otro dispositivo.</p>
+        <div class="grid grid-cols-2 gap-3 mt-4">
+          <button type="button" id="btn-export" class="btn-secondary">Descargar respaldo</button>
+          <button type="button" id="btn-import" class="btn-secondary">Restaurar respaldo</button>
+        </div>
+        <input id="file-import" type="file" accept="application/json,.json" hidden>
+        <p id="backup-status" class="status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- Vistas futuras: Hoy (Módulo 3) y Alimentos (Módulo 2) -->
+    <section id="view-hoy" hidden aria-labelledby="titulo-hoy">
+      <h2 id="titulo-hoy" class="sr-only">Resumen del día</h2>
+
+      <div class="day-nav">
+        <button type="button" id="day-prev" class="nav-arrow" aria-label="Día anterior">&lsaquo;</button>
+        <input id="day-date" type="date" aria-label="Elegir fecha">
+        <button type="button" id="day-next" class="nav-arrow" aria-label="Día siguiente">&rsaquo;</button>
+      </div>
+      <p id="hoy-label" class="hoy-label"></p>
+      <button type="button" id="day-today" class="link-btn center-link" hidden>Volver a hoy</button>
+
+      <div id="hoy-nogoals" class="card" hidden>
+        <h3 class="card-title">Define tus metas primero</h3>
+        <p class="hint">Calcula tus calorías y proteínas diarias para ver tu progreso aquí.</p>
+        <button type="button" id="go-metas" class="btn mt-4">Ir a Metas</button>
+      </div>
+
+      <div id="hoy-dash" class="space-y-4">
+        <div class="card ring-card">
+          <div id="ring" class="ring">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+              <circle id="ring-fg" class="ring-fg" cx="60" cy="60" r="52" transform="rotate(-90 60 60)"></circle>
+            </svg>
+            <div class="ring-center">
+              <span id="ring-num" class="ring-num">0</span>
+              <span id="ring-lbl" class="ring-lbl">kcal restantes</span>
+            </div>
+          </div>
+          <dl class="ring-stats">
+            <div><dt>Ingerido</dt><dd><span id="st-eaten">0</span> kcal</dd></div>
+            <div><dt>Meta</dt><dd><span id="st-goal">0</span> kcal</dd></div>
+          </dl>
+        </div>
+
+        <div class="card prot-card">
+          <div class="prot-head">
+            <h3 class="card-title">Proteínas</h3>
+            <span id="prot-state" class="pill" data-state="low">Insuficiente</span>
+          </div>
+          <p class="prot-num"><span id="prot-eaten">0</span> <small>de <span id="prot-goal">0</span> g</small></p>
+          <div id="prot-bar" class="bar" data-state="low" role="progressbar" aria-label="Progreso de proteínas" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="prot-fill" class="bar-fill"></div>
+          </div>
+          <p id="prot-note" class="hint"></p>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Otros nutrientes</h3>
+          <dl class="ring-stats">
+            <div><dt>Carbohidratos</dt><dd id="st-carbs">0 g</dd></div>
+            <div><dt>Grasas</dt><dd id="st-fat">0 g</dd></div>
+          </dl>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Por toma</h3>
+          <div id="hoy-meals"></div>
+        </div>
+
+        <button type="button" id="reset-day" class="btn-danger">Reiniciar día</button>
+      </div>
+    </section>
+    <section id="view-alimentos" hidden aria-labelledby="titulo-alimentos">
+      <h2 id="titulo-alimentos" class="sr-only">Buscar y registrar alimentos</h2>
+
+      <div class="card">
+        <form id="search-form" role="search" class="searchbar">
+          <input id="search-input" type="search" placeholder="Buscar alimento (ej. pollo, arroz, yogur)" autocomplete="off" enterkeyhint="search" aria-label="Buscar alimento">
+          <button type="submit" class="btn-search">Buscar</button>
+        </form>
+        <p id="search-status" class="hint" role="status" aria-live="polite">Escribe al menos 3 letras para buscar.</p>
+
+        <div id="results-mine" hidden>
+          <h3 class="list-title">Mis alimentos</h3>
+          <ul id="list-mine" class="food-list"></ul>
+        </div>
+        <div id="results-online" hidden>
+          <h3 class="list-title">Open Food Facts</h3>
+          <ul id="list-online" class="food-list"></ul>
+        </div>
+
+        <button type="button" id="open-manual" class="btn-secondary mt-4">Añadir alimento manual</button>
+      </div>
+
+      <div class="card mt-4">
+        <h3 id="day-title" class="card-title">Hoy</h3>
+        <p id="day-summary" class="day-summary"></p>
+        <div id="meals"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Navegación principal">
+    <button class="nav-item" data-view="hoy">Hoy</button>
+    <button class="nav-item" data-view="alimentos">Alimentos</button>
+    <button class="nav-item" data-view="metas">Metas</button>
+  </nav>
+
+  <!-- Diálogo: añadir alimento encontrado -->
+  <dialog id="add-dialog" class="sheet" aria-labelledby="add-name">
+    <form id="add-form" class="sheet-body">
+      <h3 id="add-name" class="card-title"></h3>
+      <p id="add-per" class="hint"></p>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <label class="field"><span>Cantidad</span>
+          <input id="add-qty" type="number" inputmode="decimal" min="0.1" max="10000" step="any" required></label>
+        <label class="field"><span>Unidad</span>
+          <select id="add-unit" class="select"></select></label>
+      </div>
+      <label class="block mt-4"><span class="label">Toma</span>
+        <select id="add-meal" class="select"></select></label>
+      <p id="add-preview" class="preview" aria-live="polite"></p>
+      <div class="sheet-actions">
+        <button type="button" id="add-cancel" class="btn-secondary">Cancelar</button>
+        <button type="submit" class="btn">Añadir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Diálogo: alimento manual -->
+  <dialog id="manual-dialog" class="sheet" aria-labelledby="manual-title">
+    <form id="manual-form" class="sheet-body">
+      <h3 id="manual-title" class="card-title">Alimento manual</h3>
+      <label class="field"><span>Nombre</span>
+        <input id="man-name" type="text" maxlength="80" required placeholder="Ej. Pollo a la plancha"></label>
+      <label class="block mt-4"><span class="label">Los valores son…</span>
+        <select id="man-basis" class="select">
+          <option value="g">por cada 100 g</option>
+          <option value="unit">por cada unidad o porción</option>
+        </select></label>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <label class="field"><span>Calorías (kcal)</span>
+          <input id="man-kcal" type="number" inputmode="decimal" min="0" step="any" required></label>
+        <label class="field"><span>Proteínas (g)</span>
+          <input id="man-protein" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label class="field"><span>Carbohidratos (g)</span>
+          <input id="man-carbs" type="number" inputmode="decimal" min="0" step="any"></label>
+        <label class="field"><span>Grasas (g)</span>
+          <input id="man-fat" type="number" inputmode="decimal" min="0" step="any"></label>
+      </div>
+      <label id="man-unit-grams-wrap" class="field mt-4"><span>Gramos por unidad (opcional)</span>
+        <input id="man-unit-grams" type="number" inputmode="decimal" min="1" step="any" placeholder="Ej. 60 para un huevo"></label>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <label class="field"><span id="man-qty-label">Cantidad (gramos)</span>
+          <input id="man-qty" type="number" inputmode="decimal" min="0.1" step="any" required></label>
+        <label class="field"><span>Toma</span>
+          <select id="man-meal" class="select"></select></label>
+      </div>
+      <label class="check mt-4"><input id="man-save" type="checkbox" checked> Guardar en Mis alimentos</label>
+      <div class="sheet-actions">
+        <button type="button" id="man-cancel" class="btn-secondary">Cancelar</button>
+        <button type="submit" class="btn">Añadir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="core.js"></script>
+  <script src="app.js"></script>
+  <script src="foods.js"></script>
+  <script src="today.js"></script>
+</body>
+</html>
