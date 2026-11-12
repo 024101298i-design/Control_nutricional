@@ -35,6 +35,10 @@
     manCarbs: $('man-carbs'), manFat: $('man-fat'), manUnitGrams: $('man-unit-grams'),
     manUnitGramsWrap: $('man-unit-grams-wrap'), manQty: $('man-qty'), manQtyLabel: $('man-qty-label'),
     manMeal: $('man-meal'), manSave: $('man-save'), manCancel: $('man-cancel'),
+    // diálogo "editar"
+    edDlg: $('edit-dialog'), edForm: $('edit-form'), edName: $('ed-name'), edQty: $('ed-qty'),
+    edUnit: $('ed-unit'), edMeal: $('ed-meal'), edKcal: $('ed-kcal'), edProtein: $('ed-protein'),
+    edCarbs: $('ed-carbs'), edFat: $('ed-fat'), edCancel: $('ed-cancel'),
   };
 
   /* ---------- Utilidades ---------- */
@@ -216,6 +220,14 @@
   });
 
   /* ---------- Diálogo: añadir alimento encontrado ---------- */
+  function unitOptions(food) {
+    const units = [];
+    if (food.basis === 'g') units.push(el('option', { value: 'g', text: 'gramos' }));
+    if (food.basis === 'unit') units.push(el('option', { value: 'u', text: 'unidades' }));
+    else if (food.unitGrams) units.push(el('option', { value: 'u', text: `unidades (≈ ${fmt(food.unitGrams, 0)} g c/u)` }));
+    return units;
+  }
+
   function openAdd(food) {
     selected = food;
     els.addName.textContent = food.name;
@@ -224,11 +236,7 @@
       `${fmt(food.kcal)} kcal · ${fmt(food.protein, 1)} g prot. · ${fmt(food.carbs, 1)} g carb. · ${fmt(food.fat, 1)} g grasa ${food.basis === 'unit' ? 'por unidad' : 'por 100 g'}`,
     ].filter(Boolean).join(' · ');
 
-    const units = [];
-    if (food.basis === 'g') units.push(el('option', { value: 'g', text: 'gramos' }));
-    if (food.basis === 'unit') units.push(el('option', { value: 'u', text: 'unidades' }));
-    else if (food.unitGrams) units.push(el('option', { value: 'u', text: `unidades (≈ ${fmt(food.unitGrams, 0)} g c/u)` }));
-    els.addUnit.replaceChildren(...units);
+    els.addUnit.replaceChildren(...unitOptions(food));
 
     els.addQty.value = food.basis === 'unit' ? 1 : 100;
     fillMealSelect(els.addMeal);
@@ -265,6 +273,10 @@
     log.meals[meal].push({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       name: food.name, brand: food.brand || '', qty, unit, ...n,
+      base: {
+        basis: food.basis, kcal: food.kcal, protein: food.protein,
+        carbs: food.carbs, fat: food.fat, unitGrams: food.unitGrams || null,
+      },
     });
     saveLog();
     renderDay();
@@ -316,8 +328,85 @@
     els.manDlg.close();
   });
 
-  [els.addDlg, els.manDlg].forEach((dlg) => {
+  [els.addDlg, els.manDlg, els.edDlg].forEach((dlg) => {
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  });
+
+  /* ---------- Diálogo: editar una comida ya registrada ---------- */
+  let editing = null; // { mealId, entry }
+
+  // Nutrientes para una cantidad/unidad nuevas. Si la entrada no guardó su base
+  // (registros antiguos), se escala proporcionalmente desde sus valores actuales.
+  function editNutrients(entry, qty, unit) {
+    if (entry.base && entry.base.basis) return nutrientsFor(entry.base, qty, unit);
+    const k = entry.qty > 0 ? qty / entry.qty : 1;
+    return {
+      kcal: Math.round(entry.kcal * k), protein: round1(entry.protein * k),
+      carbs: round1((entry.carbs || 0) * k), fat: round1((entry.fat || 0) * k),
+    };
+  }
+
+  function fillEditNutrients(n) {
+    els.edKcal.value = n.kcal;
+    els.edProtein.value = n.protein;
+    els.edCarbs.value = n.carbs;
+    els.edFat.value = n.fat;
+  }
+
+  function openEdit(mealId, entry) {
+    editing = { mealId, entry };
+    els.edName.value = entry.name;
+    els.edQty.value = entry.qty;
+    const options = entry.base && entry.base.basis
+      ? unitOptions(entry.base)
+      : [el('option', { value: entry.unit, text: entry.unit === 'g' ? 'gramos' : 'unidades' })];
+    els.edUnit.replaceChildren(...options);
+    els.edUnit.value = entry.unit;
+    fillMealSelect(els.edMeal);
+    els.edMeal.value = mealId;
+    fillEditNutrients(entry);
+    els.edDlg.showModal();
+  }
+
+  function recalcEdit() {
+    const qty = parseFloat(els.edQty.value);
+    if (!editing || !Number.isFinite(qty) || qty <= 0) return;
+    fillEditNutrients(editNutrients(editing.entry, qty, els.edUnit.value));
+  }
+
+  els.edQty.addEventListener('input', recalcEdit);
+  els.edUnit.addEventListener('change', recalcEdit);
+  els.edCancel.addEventListener('click', () => els.edDlg.close());
+
+  els.edForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!editing) return;
+    const qty = num(els.edQty.value);
+    const kcal = num(els.edKcal.value);
+    const name = els.edName.value.trim();
+    if (!name || !qty || qty <= 0 || qty > 10000 || kcal === null || kcal < 0) return;
+
+    const { mealId, entry } = editing;
+    const updated = {
+      ...entry, name, qty, unit: els.edUnit.value,
+      kcal: Math.round(kcal),
+      protein: round1(Math.max(num(els.edProtein.value) ?? 0, 0)),
+      carbs: round1(Math.max(num(els.edCarbs.value) ?? 0, 0)),
+      fat: round1(Math.max(num(els.edFat.value) ?? 0, 0)),
+    };
+
+    const newMeal = els.edMeal.value;
+    if (newMeal === mealId) {
+      log.meals[mealId] = log.meals[mealId].map((x) => (x.id === entry.id ? updated : x));
+    } else {
+      log.meals[mealId] = log.meals[mealId].filter((x) => x.id !== entry.id);
+      log.meals[newMeal].push(updated);
+    }
+    saveLog();
+    renderDay();
+    els.edDlg.close();
+    editing = null;
+    setStatus(`Cambios guardados: ${name}.`);
   });
 
   /* ---------- Registro diario ---------- */
@@ -354,11 +443,17 @@
           el('div', { class: 'entry-text' },
             el('span', { class: 'food-name', text: entry.name }),
             el('span', { class: 'food-meta', text: `${qtyText(entry)} · ${fmt(entry.kcal)} kcal · ${fmt(entry.protein, 1)} g prot.` })),
-          el('button', {
-            class: 'icon-btn', type: 'button', text: 'Quitar',
-            'aria-label': `Quitar ${entry.name} de ${meal.label.toLowerCase()}`,
-            onclick: () => deleteEntry(meal.id, entry.id),
-          }))));
+          el('div', { class: 'entry-actions' },
+            el('button', {
+              class: 'icon-btn edit', type: 'button', text: 'Editar',
+              'aria-label': `Editar ${entry.name} de ${meal.label.toLowerCase()}`,
+              onclick: () => openEdit(meal.id, entry),
+            }),
+            el('button', {
+              class: 'icon-btn', type: 'button', text: 'Quitar',
+              'aria-label': `Quitar ${entry.name} de ${meal.label.toLowerCase()}`,
+              onclick: () => deleteEntry(meal.id, entry.id),
+            })))));
       return el('div', { class: 'meal' },
         el('div', { class: 'meal-head' },
           el('h4', { text: meal.label }),
