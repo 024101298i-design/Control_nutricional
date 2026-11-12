@@ -1,6 +1,6 @@
 /* NutriMeta · service worker: funciona sin conexión.
    Cambia CACHE (v1 → v2…) cada vez que publiques cambios para forzar la actualización. */
-const CACHE = 'nutrimeta-v4';
+const CACHE = 'nutrimeta-v5';
 const SHELL = [
   './', './index.html', './styles.css', './core.js', './app.js', './foods.js', './today.js',
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
