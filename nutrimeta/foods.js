@@ -23,7 +23,7 @@
     form: $('search-form'), input: $('search-input'), status: $('search-status'),
     boxMine: $('results-mine'), listMine: $('list-mine'),
     boxOnline: $('results-online'), listOnline: $('list-online'),
-    openManual: $('open-manual'),
+    openManual: $('open-manual'), more: $('search-more'), onlineTitle: $('title-online'),
     dayTitle: $('day-title'), daySummary: $('day-summary'), meals: $('meals'),
     // diálogo "añadir"
     addDlg: $('add-dialog'), addForm: $('add-form'), addName: $('add-name'), addPer: $('add-per'),
@@ -78,6 +78,7 @@
   let controller = null;
   let timer = null;
   let selected = null;
+  let scope = NM.read('busqueda-ambito', 'pe') === 'world' ? 'world' : 'pe'; // 'pe' | 'world'
 
   function loadLog(date) {
     const saved = NM.read(`dia:${date}`, null) || {};
@@ -126,15 +127,22 @@
     };
   }
 
-  async function searchOnline(q) {
-    const key = plain(q);
+  async function searchOnline(q, where) {
+    const key = `${where}:${plain(q)}`;
     if (searchCache.has(key)) return searchCache.get(key);
     if (controller) controller.abort();
     controller = new AbortController();
     const params = new URLSearchParams({
-      search_terms: q, search_simple: '1', action: 'process', json: '1', page_size: '20',
+      search_terms: q, search_simple: '1', action: 'process', json: '1', page_size: '24',
+      sort_by: 'unique_scans_n', // primero los productos más escaneados
       fields: 'code,product_name,brands,nutriments,serving_quantity',
     });
+    if (where === 'pe') {
+      // Solo productos vendidos en Perú
+      params.set('tagtype_0', 'countries');
+      params.set('tag_contains_0', 'contains');
+      params.set('tag_0', 'peru');
+    }
     const res = await fetch(`${API}?${params}`, { signal: controller.signal });
     if (!res.ok) { const err = new Error('http'); err.status = res.status; throw err; }
     const data = await res.json();
@@ -178,16 +186,23 @@
 
   function setStatus(msg) { els.status.textContent = msg; }
 
+  function scopeLabel(where) { return where === 'pe' ? 'Perú' : 'Todo el mundo'; }
+
   async function runSearch() {
     const q = els.input.value.trim();
     if (q.length < MIN_CHARS) return;
+    const where = scope;
+    els.onlineTitle.textContent = `Open Food Facts · ${scopeLabel(where)}`;
+    els.more.hidden = true;
     setStatus('Buscando…');
     try {
-      const foods = await searchOnline(q);
-      if (els.input.value.trim() !== q) return; // el usuario siguió escribiendo
+      const foods = await searchOnline(q, where);
+      if (els.input.value.trim() !== q || scope !== where) return; // la búsqueda cambió mientras tanto
       renderList(els.boxOnline, els.listOnline, foods);
-      setStatus(foods.length ? `${foods.length} resultados. Toca uno para añadirlo.` :
-        'Sin resultados. Prueba otra palabra o añade el alimento manual.');
+      els.more.hidden = !(where === 'pe' && foods.length < 8);
+      if (foods.length) setStatus(`${foods.length} resultados${where === 'pe' ? ' en Perú' : ''}. Toca uno para añadirlo.`);
+      else if (where === 'pe') setStatus('Sin resultados en Perú. Prueba con «Todo el mundo» o añade el alimento manual.');
+      else setStatus('Sin resultados. Prueba otra palabra o añade el alimento manual.');
     } catch (e) {
       if (e.name === 'AbortError') return;
       els.boxOnline.hidden = true;
@@ -197,12 +212,25 @@
     }
   }
 
+  // Selector "Perú / Todo el mundo"
+  const scopeInputs = document.querySelectorAll('input[name="scope"]');
+  function setScope(value, { search = true } = {}) {
+    scope = value === 'world' ? 'world' : 'pe';
+    NM.write('busqueda-ambito', scope);
+    scopeInputs.forEach((r) => { r.checked = r.value === scope; });
+    if (search && els.input.value.trim().length >= MIN_CHARS) { clearTimeout(timer); runSearch(); }
+  }
+  scopeInputs.forEach((r) => r.addEventListener('change', () => { if (r.checked) setScope(r.value); }));
+  els.more.addEventListener('click', () => setScope('world'));
+  setScope(scope, { search: false });
+
   els.input.addEventListener('input', () => {
     clearTimeout(timer);
     const q = els.input.value.trim();
     if (q.length < MIN_CHARS) {
       if (controller) controller.abort();
       els.boxOnline.hidden = true;
+      els.more.hidden = true;
       renderList(els.boxMine, els.listMine, []);
       setStatus(`Escribe al menos ${MIN_CHARS} letras para buscar.`);
       return;

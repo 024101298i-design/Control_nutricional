@@ -6,7 +6,7 @@ Es una página estática: sin backend, sin build y sin API keys. Tus datos se gu
 ## Qué incluye
 
 - **Metas**: BMR y TDEE (Mifflin-St Jeor), meta de calorías y de proteínas editables, respaldo en archivo `.json`.
-- **Alimentos**: búsqueda en [Open Food Facts](https://world.openfoodfacts.org), alimento manual, "Mis alimentos" y registro diario por tomas (Desayuno, Almuerzo, Cena, Snacks).
+- **Alimentos**: búsqueda en [Open Food Facts](https://world.openfoodfacts.org) (por defecto solo productos de Perú, con opción de buscar en todo el mundo), alimento manual, "Mis alimentos" y registro diario por tomas (Desayuno, Almuerzo, Cena, Snacks), con opción de editar o quitar cada comida registrada.
 - **Hoy**: anillo de calorías (ingerido / meta / restantes), barra de proteínas que cambia de color (rojo, amarillo, verde), resumen por toma, navegación a días anteriores y botón para reiniciar el día.
 
 ## Abrirla en tu computadora
@@ -38,7 +38,7 @@ En uno o dos minutos tu app estará en `https://TU-USUARIO.github.io/nutrimeta/`
 ## Notas
 
 - Los datos son **por dispositivo y por navegador**. Para pasarlos a otro, usa *Descargar respaldo* y *Restaurar respaldo* en la pestaña Metas.
-- Cuando publiques cambios, sube el número de `CACHE` en `sw.js` (`nutrimeta-v4` → `nutrimeta-v5`) para que los celulares reciban la versión nueva.
+- Cuando publiques cambios, sube el número de `CACHE` en `sw.js` (`nutrimeta-v6` → `nutrimeta-v7`) para que los celulares reciban la versión nueva.
 - Open Food Facts limita las búsquedas (unas 10 por minuto), por eso la búsqueda espera un momento después de que dejas de escribir.
 - No usa Tailwind ni ninguna librería de JavaScript externa: los estilos están en `styles.css`. Lo único externo son las fuentes de Google, que tienen una alternativa del sistema si no cargan.
 

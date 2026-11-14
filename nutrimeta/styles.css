@@ -293,3 +293,5 @@ input.invalid { border-color: var(--danger); }
 /* ---------- Editar comidas ---------- */
 .entry-actions { display: flex; align-items: center; }
 .icon-btn.edit { color: var(--pine-soft); }
+
+.scope { margin-top: 10px; }

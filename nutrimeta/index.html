@@ -202,6 +202,13 @@
           <input id="search-input" type="search" placeholder="Buscar alimento (ej. pollo, arroz, yogur)" autocomplete="off" enterkeyhint="search" aria-label="Buscar alimento">
           <button type="submit" class="btn-search">Buscar</button>
         </form>
+        <fieldset class="scope">
+          <legend class="sr-only">Dónde buscar</legend>
+          <div class="seg seg-2">
+            <label><input type="radio" name="scope" value="pe" checked><span>Perú</span></label>
+            <label><input type="radio" name="scope" value="world"><span>Todo el mundo</span></label>
+          </div>
+        </fieldset>
         <p id="search-status" class="hint" role="status" aria-live="polite">Escribe al menos 3 letras para buscar.</p>
 
         <div id="results-mine" hidden>
@@ -209,8 +216,9 @@
           <ul id="list-mine" class="food-list"></ul>
         </div>
         <div id="results-online" hidden>
-          <h3 class="list-title">Open Food Facts</h3>
+          <h3 id="title-online" class="list-title">Open Food Facts · Perú</h3>
           <ul id="list-online" class="food-list"></ul>
+          <button type="button" id="search-more" class="btn-secondary mt-4" hidden>Buscar también en todo el mundo</button>
         </div>
 
         <button type="button" id="open-manual" class="btn-secondary mt-4">Añadir alimento manual</button>
