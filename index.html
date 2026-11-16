@@ -336,46 +336,39 @@
     </form>
   </dialog>
 
-  <!-- Diálogo: identificar comida con foto -->
+  <!-- Diálogo: identificar comida con foto (reconocimiento en el dispositivo) -->
   <dialog id="photo-dialog" class="sheet" aria-labelledby="photo-title">
     <div class="sheet-body">
       <h3 id="photo-title" class="card-title">Identificar con foto</h3>
+      <p id="photo-intro" class="hint">Funciona en tu dispositivo: sin costo y sin enviar tu foto a ningún servidor. La primera vez descarga un modelo de reconocimiento (unos 150 MB) que queda guardado.</p>
 
-      <div id="photo-setup" hidden>
-        <p class="hint">Para analizar fotos necesitas una API key de Anthropic (Claude). Se guarda solo en este dispositivo y se envía únicamente a api.anthropic.com junto con la foto. Cada análisis tiene un costo pequeño en tu cuenta de Anthropic.</p>
-        <label class="field mt-4"><span>Tu API key</span>
-          <input id="photo-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-..."></label>
-        <button type="button" id="photo-key-save" class="btn mt-4">Guardar y continuar</button>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <button type="button" id="photo-camera" class="btn">Tomar foto</button>
+        <button type="button" id="photo-gallery" class="btn-secondary">Elegir foto</button>
       </div>
+      <input id="photo-input-camera" type="file" accept="image/*" capture="environment" hidden>
+      <input id="photo-input-gallery" type="file" accept="image/*" hidden>
+      <img id="photo-preview" class="photo-preview" alt="Foto de la comida" hidden>
+      <p id="photo-status" class="hint" role="status" aria-live="polite"></p>
 
-      <div id="photo-main" hidden>
-        <div class="grid grid-cols-2 gap-3">
-          <button type="button" id="photo-camera" class="btn">Tomar foto</button>
-          <button type="button" id="photo-gallery" class="btn-secondary">Elegir foto</button>
-        </div>
-        <input id="photo-input-camera" type="file" accept="image/*" capture="environment" hidden>
-        <input id="photo-input-gallery" type="file" accept="image/*" hidden>
-        <img id="photo-preview" class="photo-preview" alt="Foto de la comida" hidden>
-        <p id="photo-status" class="hint" role="status" aria-live="polite"></p>
-        <div id="photo-results" hidden>
-          <ul id="photo-list" class="photo-list"></ul>
-          <label class="block mt-4"><span class="label">Toma</span>
-            <select id="photo-meal" class="select"></select></label>
-          <p class="hint">Son estimaciones aproximadas. Revisa los nombres y las porciones antes de añadir.</p>
-        </div>
+      <div id="photo-results" hidden>
+        <ul id="photo-list" class="photo-list"></ul>
+        <label class="block mt-4"><span class="label">Toma</span>
+          <select id="photo-meal" class="select"></select></label>
+        <p class="hint">Compara tu foto con una lista de alimentos comunes y propone los más parecidos, con una porción típica. Son valores aproximados: ajusta los gramos.</p>
       </div>
 
       <div class="sheet-actions">
         <button type="button" id="photo-close" class="btn-secondary">Cerrar</button>
         <button type="button" id="photo-add" class="btn" hidden>Añadir</button>
       </div>
-      <button type="button" id="photo-key-remove" class="link-btn center-link" hidden>Quitar mi API key de este dispositivo</button>
     </div>
   </dialog>
 
   <script src="core.js"></script>
   <script src="app.js"></script>
   <script src="foods.js"></script>
+  <script src="foods-db.js"></script>
   <script src="photo.js"></script>
   <script src="today.js"></script>
 </body>

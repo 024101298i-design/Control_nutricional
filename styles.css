@@ -312,3 +312,5 @@ input.invalid { border-color: var(--danger); }
 }
 .photo-name { flex: 1; }
 .photo-grams { width: 84px; }
+
+.photo-grams { width: 96px; }

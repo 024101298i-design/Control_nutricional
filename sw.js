@@ -1,11 +1,11 @@
 /* NutriMeta · service worker: funciona sin conexión.
    Cambia CACHE (v1 → v2…) cada vez que publiques cambios para forzar la actualización. */
-const CACHE = 'nutrimeta-v7';
+const CACHE = 'nutrimeta-v8';
 const SHELL = [
-  './', './index.html', './styles.css', './core.js', './app.js', './foods.js', './photo.js', './today.js',
+  './', './index.html', './styles.css', './core.js', './app.js', './foods.js', './foods-db.js', './photo.js', './today.js',
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
 ];
-const CDN_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com']; // solo las fuentes
+const CDN_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net']; // fuentes y librería del reconocimiento por foto
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -37,7 +37,7 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Fuentes de Google: caché primero. La API de Open Food Facts nunca se intercepta.
+  // Fuentes y librería de la foto: caché primero. La API de Open Food Facts nunca se intercepta.
   if (CDN_HOSTS.includes(url.hostname)) {
     e.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
