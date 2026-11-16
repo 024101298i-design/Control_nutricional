@@ -34,6 +34,7 @@
     manBasis: $('man-basis'), manKcal: $('man-kcal'), manProtein: $('man-protein'),
     manCarbs: $('man-carbs'), manFat: $('man-fat'), manUnitGrams: $('man-unit-grams'),
     manUnitGramsWrap: $('man-unit-grams-wrap'), manQty: $('man-qty'), manQtyLabel: $('man-qty-label'),
+    alPrev: $('al-prev'), alNext: $('al-next'), alDate: $('al-date'), alToday: $('al-today'),
     manMeal: $('man-meal'), manSave: $('man-save'), manCancel: $('man-cancel'),
     // diálogo "editar"
     edDlg: $('edit-dialog'), edForm: $('edit-form'), edName: $('ed-name'), edQty: $('ed-qty'),
@@ -71,7 +72,7 @@
   }
 
   /* ---------- Estado ---------- */
-  let currentDate = NM.dateKey();
+  let currentDate = NM.state.date;
   let log = loadLog(currentDate);
   let myFoods = NM.read('mis-alimentos', []);
   const searchCache = new Map();
@@ -309,7 +310,9 @@
     saveLog();
     renderDay();
     const label = MEALS.find((m) => m.id === meal).label;
-    setStatus(`Añadido a ${label.toLowerCase()}: ${food.name}.`);
+    const when = currentDate === NM.dateKey() ? '' :
+      ` del ${new Date(...currentDate.split('-').map((v, i) => (i === 1 ? v - 1 : +v))).toLocaleDateString('es', { day: 'numeric', month: 'short' })}`;
+    setStatus(`Añadido a ${label.toLowerCase()}${when}: ${food.name}.`);
   }
 
   /* ---------- Diálogo: alimento manual ---------- */
@@ -450,9 +453,12 @@
   }
 
   function renderDay() {
-    const [y, m, d] = currentDate.split('-').map(Number);
-    const label = new Date(y, m - 1, d).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' });
-    els.dayTitle.textContent = `Hoy, ${label}`;
+    const today = NM.dateKey();
+    els.dayTitle.textContent = NM.dateLabel(currentDate);
+    els.alDate.value = currentDate;
+    els.alDate.max = today;
+    els.alNext.disabled = currentDate >= today;
+    els.alToday.hidden = currentDate === today;
 
     const all = MEALS.flatMap((meal) => log.meals[meal.id]);
     const totalKcal = all.reduce((s, e) => s + e.kcal, 0);
@@ -490,13 +496,34 @@
     }));
   }
 
+  /* ---------- Navegación entre días (registrar o editar días anteriores) ---------- */
+  function syncDate() {
+    const today = NM.dateKey();
+    if (NM.state.date > today) NM.state.date = today;
+    currentDate = NM.state.date;
+    log = loadLog(currentDate);
+  }
+
+  function goDate(key) {
+    NM.state.date = key;
+    syncDate();
+    renderDay();
+  }
+
+  els.alPrev.addEventListener('click', () => goDate(NM.shiftDate(currentDate, -1)));
+  els.alNext.addEventListener('click', () => goDate(NM.shiftDate(currentDate, 1)));
+  els.alToday.addEventListener('click', () => goDate(NM.dateKey()));
+  els.alDate.addEventListener('change', () => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(els.alDate.value)) goDate(els.alDate.value);
+  });
+
   /* ---------- Inicio ---------- */
   document.addEventListener('nutrimeta:view', (e) => {
     if (e.detail !== 'alimentos') return;
-    currentDate = NM.dateKey();
-    log = loadLog(currentDate); // el registro pudo cambiar desde la pestaña Hoy
+    syncDate(); // la fecha o el registro pudieron cambiar desde la pestaña Hoy
     renderDay();
   });
 
+  NM.foods = { addEntry }; // lo usa photo.js
   renderDay();
 })();

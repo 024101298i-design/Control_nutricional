@@ -295,3 +295,22 @@ input.invalid { border-color: var(--danger); }
 .icon-btn.edit { color: var(--pine-soft); }
 
 .scope { margin-top: 10px; }
+
+/* ---------- Registro por día y foto ---------- */
+.day-title { margin-top: 12px; text-transform: capitalize; }
+.photo-preview { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 14px; margin-top: 12px; }
+.photo-list { list-style: none; margin: 12px 0 0; padding: 0; }
+.photo-item { display: flex; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+.photo-item:first-child { border-top: 0; }
+.photo-check { display: flex; align-items: flex-start; padding-top: 10px; }
+.photo-check input { width: 22px; height: 22px; accent-color: var(--pine); }
+.photo-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.photo-fields { display: flex; align-items: center; gap: 8px; }
+.photo-name, .photo-grams {
+  min-height: 44px; font: inherit; color: var(--text); background: #F7F9F8;
+  border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0;
+}
+.photo-name { flex: 1; }
+.photo-grams { width: 84px; }
+
+.photo-grams { width: 96px; }

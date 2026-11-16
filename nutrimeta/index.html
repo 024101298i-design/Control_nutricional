@@ -191,6 +191,7 @@
           <div id="hoy-meals"></div>
         </div>
 
+        <button type="button" id="go-edit" class="btn-secondary">Ver y editar las comidas de este día</button>
         <button type="button" id="reset-day" class="btn-danger">Reiniciar día</button>
       </div>
     </section>
@@ -222,10 +223,17 @@
         </div>
 
         <button type="button" id="open-manual" class="btn-secondary mt-4">Añadir alimento manual</button>
+        <button type="button" id="open-photo" class="btn-secondary mt-4">Identificar comida con una foto</button>
       </div>
 
       <div class="card mt-4">
-        <h3 id="day-title" class="card-title">Hoy</h3>
+        <div class="day-nav">
+          <button type="button" id="al-prev" class="nav-arrow" aria-label="Día anterior">&lsaquo;</button>
+          <input id="al-date" type="date" aria-label="Elegir el día a registrar o editar">
+          <button type="button" id="al-next" class="nav-arrow" aria-label="Día siguiente">&rsaquo;</button>
+        </div>
+        <button type="button" id="al-today" class="link-btn center-link" hidden>Volver a hoy</button>
+        <h3 id="day-title" class="card-title day-title">Hoy</h3>
         <p id="day-summary" class="day-summary"></p>
         <div id="meals"></div>
       </div>
@@ -328,9 +336,40 @@
     </form>
   </dialog>
 
+  <!-- Diálogo: identificar comida con foto (reconocimiento en el dispositivo) -->
+  <dialog id="photo-dialog" class="sheet" aria-labelledby="photo-title">
+    <div class="sheet-body">
+      <h3 id="photo-title" class="card-title">Identificar con foto</h3>
+      <p id="photo-intro" class="hint">Funciona en tu dispositivo: sin costo y sin enviar tu foto a ningún servidor. La primera vez descarga un modelo de reconocimiento (unos 150 MB) que queda guardado.</p>
+
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <button type="button" id="photo-camera" class="btn">Tomar foto</button>
+        <button type="button" id="photo-gallery" class="btn-secondary">Elegir foto</button>
+      </div>
+      <input id="photo-input-camera" type="file" accept="image/*" capture="environment" hidden>
+      <input id="photo-input-gallery" type="file" accept="image/*" hidden>
+      <img id="photo-preview" class="photo-preview" alt="Foto de la comida" hidden>
+      <p id="photo-status" class="hint" role="status" aria-live="polite"></p>
+
+      <div id="photo-results" hidden>
+        <ul id="photo-list" class="photo-list"></ul>
+        <label class="block mt-4"><span class="label">Toma</span>
+          <select id="photo-meal" class="select"></select></label>
+        <p class="hint">Compara tu foto con una lista de alimentos comunes y propone los más parecidos, con una porción típica. Son valores aproximados: ajusta los gramos.</p>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" id="photo-close" class="btn-secondary">Cerrar</button>
+        <button type="button" id="photo-add" class="btn" hidden>Añadir</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="core.js"></script>
   <script src="app.js"></script>
   <script src="foods.js"></script>
+  <script src="foods-db.js"></script>
+  <script src="photo.js"></script>
   <script src="today.js"></script>
 </body>
 </html>

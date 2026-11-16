@@ -38,7 +38,9 @@ En uno o dos minutos tu app estará en `https://TU-USUARIO.github.io/nutrimeta/`
 ## Notas
 
 - Los datos son **por dispositivo y por navegador**. Para pasarlos a otro, usa *Descargar respaldo* y *Restaurar respaldo* en la pestaña Metas.
-- Cuando publiques cambios, sube el número de `CACHE` en `sw.js` (`nutrimeta-v6` → `nutrimeta-v7`) para que los celulares reciban la versión nueva.
+- Cuando publiques cambios, sube el número de `CACHE` en `sw.js` (`nutrimeta-v8` → `nutrimeta-v9`) para que los celulares reciban la versión nueva.
+- **Foto de la comida:** el reconocimiento ocurre **en tu dispositivo**, sin API key, sin costo y sin enviar la foto a ningún servidor. Usa CLIP ([transformers.js](https://github.com/xenova/transformers.js)) para comparar la foto con la lista de `foods-db.js` y proponer los alimentos más parecidos con una porción típica. La primera vez descarga el modelo (unos 150 MB, estimado) desde Hugging Face y lo guarda en el navegador. Puedes ampliar la lista agregando filas en `foods-db.js`. Los valores de esa lista son aproximados.
+- Puedes registrar y editar comidas de días anteriores con las flechas de fecha en Alimentos.
 - Open Food Facts limita las búsquedas (unas 10 por minuto), por eso la búsqueda espera un momento después de que dejas de escribir.
 - No usa Tailwind ni ninguna librería de JavaScript externa: los estilos están en `styles.css`. Lo único externo son las fuentes de Google, que tienen una alternativa del sistema si no cargan.
 
@@ -50,6 +52,8 @@ styles.css            Estilos propios
 core.js               Almacenamiento, navegación, respaldo, registro del service worker
 app.js                Módulo 1: calculadora de metas
 foods.js              Módulo 2: buscador y registro de alimentos
+photo.js              Identificar comida con una foto (en el dispositivo)
+foods-db.js           Alimentos de referencia (Perú y comunes) para el reconocimiento
 today.js              Módulo 3: dashboard y progreso (pestaña Hoy)
 sw.js                 Service worker (offline)
 manifest.webmanifest  Datos de instalación PWA

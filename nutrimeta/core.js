@@ -56,6 +56,25 @@
     },
   });
 
+  /* ---------- Fecha seleccionada (compartida por Hoy y Alimentos) ---------- */
+  NM.state = { date: NM.dateKey() };
+
+  const parseKey = (k) => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+
+  NM.shiftDate = (key, delta) => {
+    const d = parseKey(key);
+    d.setDate(d.getDate() + delta);
+    return NM.dateKey(d);
+  };
+
+  NM.dateLabel = (key) => {
+    const today = NM.dateKey();
+    const text = parseKey(key).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' });
+    if (key === today) return `Hoy · ${text}`;
+    if (key === NM.shiftDate(today, -1)) return `Ayer · ${text}`;
+    return parseKey(key).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   /* ---------- Navegación ---------- */
   document.querySelectorAll('.nav-item').forEach((btn) => {
     btn.addEventListener('click', () => {

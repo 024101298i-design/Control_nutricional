@@ -28,25 +28,13 @@
     protState: $('prot-state'), protEaten: $('prot-eaten'), protGoal: $('prot-goal'),
     protBar: $('prot-bar'), protFill: $('prot-fill'), protNote: $('prot-note'),
     carbs: $('st-carbs'), fat: $('st-fat'),
-    meals: $('hoy-meals'), reset: $('reset-day'),
+    meals: $('hoy-meals'), reset: $('reset-day'), goEdit: $('go-edit'),
   };
 
-  let date = NM.dateKey();
+  let date = NM.state.date;
 
-  /* ---------- Utilidades de fecha ---------- */
-  const parseKey = (k) => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
-  function shift(key, delta) {
-    const d = parseKey(key);
-    d.setDate(d.getDate() + delta);
-    return NM.dateKey(d);
-  }
-  function longLabel(key) {
-    const text = parseKey(key).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' });
-    const today = NM.dateKey();
-    if (key === today) return `Hoy · ${text}`;
-    if (key === shift(today, -1)) return `Ayer · ${text}`;
-    return parseKey(key).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  }
+  const shift = NM.shiftDate;
+  const longLabel = NM.dateLabel;
 
   /* ---------- Datos ---------- */
   function loadDay(key) {
@@ -74,7 +62,8 @@
   /* ---------- Render ---------- */
   function render() {
     const today = NM.dateKey();
-    if (date > today) date = today;
+    date = NM.state.date > today ? today : NM.state.date;
+    NM.state.date = date;
     const isToday = date === today;
 
     els.date.value = date;
@@ -142,14 +131,15 @@
   }
 
   /* ---------- Eventos ---------- */
-  els.prev.addEventListener('click', () => { date = shift(date, -1); render(); });
-  els.next.addEventListener('click', () => { date = shift(date, 1); render(); });
-  els.toToday.addEventListener('click', () => { date = NM.dateKey(); render(); });
+  els.prev.addEventListener('click', () => { NM.state.date = shift(date, -1); render(); });
+  els.next.addEventListener('click', () => { NM.state.date = shift(date, 1); render(); });
+  els.toToday.addEventListener('click', () => { NM.state.date = NM.dateKey(); render(); });
   els.date.addEventListener('change', () => {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(els.date.value)) date = els.date.value;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(els.date.value)) NM.state.date = els.date.value;
     render();
   });
   els.goMetas.addEventListener('click', () => NM.show('metas'));
+  els.goEdit.addEventListener('click', () => NM.show('alimentos'));
 
   els.reset.addEventListener('click', () => {
     const isToday = date === NM.dateKey();
